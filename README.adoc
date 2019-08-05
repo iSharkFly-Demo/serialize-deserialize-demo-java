@@ -7,14 +7,27 @@
 
 image::https://docs.ossez.com/protocol-buffers-docs/images/protocol-buffers-logo.jpg[]
 
-== MessagePack
-It’s like JSON. but fast and small.
+=== Protocol Buffer 相关文档和资料
+ * https://www.cwiki.us/display/Serialization/Protocol+Buffers - cwiki.us 的 Protocol Buffer WIKI
+ * http://docs.ossez.com/protocol-buffers-docs/index.html - Protocol Buffer 技术资料
 
+== MessagePack
 简单来讲，它的数据格式与json类似，但是在存储时对数字、多字节字符、数组等都做了很多优化，减少了无用的字符，二进制格式，也保证不用字符化带来额外的存储空间的增加。
 
-== 相关文档和资料
- * https://www.cwiki.us/display/ProtocolBuffers/Protocol+Buffers - cwiki.us 的 Protocol Buffer WIKI
- * http://docs.ossez.com/protocol-buffers-docs/index.html - Protocol Buffer 技术资料
+MessagePack 是一个计算机的数据交换格式。
+
+MessagePack 是一个二进制的格式用来表达简单的数据结构,例如数组和关联数组。
+
+MessagePack 的目标尽量的简单和紧凑。官方的实现已经实现了多种语言，例如 C, C++, C#, D, Erlang, Go, Haskell, Java, JavaScript, Lua, OCaml, Perl, PHP, Python, Ruby, Scala, Smalltalk, 和 Swift。
+
+MessagePack 的了解就是传输的数据格式都是二进制，可以节省用户的流量。
+
+image::http://docs.ossez.com/messagepack-docs/images/messagepack-logo.png[]
+
+=== MessagePack 相关文档和资料
+ * https://www.cwiki.us/display/Serialization/MessagePack - cwiki.us 的 MessagePack WIKI
+ * http://docs.ossez.com/messagepack-docs/index.html - MessagePack 技术资料
+
 
 == 数据序列化和反序列化
 * 序列化： 将数据结构或对象转换成二进制串的过程。
