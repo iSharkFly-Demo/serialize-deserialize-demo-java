@@ -16,6 +16,8 @@ dependencies {
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
 
+    compile group: 'joda-time', name: 'joda-time', version: '2.10.3'
+
     // Protobuf
     compile 'com.google.protobuf:protobuf-java:3.9.0'
     compile 'com.google.protobuf:protobuf-java-util:3.9.0'
@@ -26,6 +28,12 @@ dependencies {
     // Snappy Zip
     compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.3'
 
+    //log
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.2'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.9'
+    compile group: 'ch.qos.logback', name: 'logback-core', version: '1.0.9'
+
+    //test
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
