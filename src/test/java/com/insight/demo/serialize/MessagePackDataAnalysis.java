@@ -1,125 +1,127 @@
 package com.insight.demo.serialize;
 
-import com.google.protobuf.ByteString;
-import com.insight.demo.serialize.mode.Tot.TotMessage;
-import com.insight.demo.serialize.mode.TotList.TotListMessage;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.joda.time.DateTime;
+import com.insight.demo.serialize.model.msgpack.DataCacheMessage;
 import org.junit.Test;
-import org.xerial.snappy.Snappy;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import org.msgpack.MessagePack;
+import org.msgpack.packer.Packer;
+import org.msgpack.template.ListTemplate;
+import org.msgpack.template.Templates;
+import org.msgpack.type.ArrayValue;
+import org.msgpack.type.Value;
+import org.msgpack.unpacker.Converter;
+import org.msgpack.unpacker.Unpacker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class MessagePackDataAnalysis {
 
+    final Logger logger = LoggerFactory.getLogger(MessagePackDataAnalysis.class);
+
     @Test
-    public void testTotCache() {
+    public void testMessagePackSerialization() {
 
-        long sTime = DateTime.now().getMillis();
+        DataCacheMessage dataCacheMessage1 = new DataCacheMessage();
+        dataCacheMessage1.compact = true;
+        dataCacheMessage1.schema=0;
 
-        TotMessage.Builder builder = TotMessage.newBuilder();
-        TotListMessage.Builder builderList = TotListMessage.newBuilder();
-
-
-        for (int i = 0; i < 30000; i++) {
-            // simple fields
-            builder.setPortfolioId(RandomUtils.nextDouble(12, 2000))
-                    .setTradableEntityId(RandomUtils.nextDouble(12, 2000))
-                    .setQuantity(RandomUtils.nextDouble(0, 2000000))
-                    .setTestPrice((RandomUtils.nextDouble(0, 2000000)))
-                    .setTotalMarketValueUSDAmount(builder.getQuantity() * builder.getTestPrice())
-                    .setRuleApplicationTimeCode("BOD")
-                    .setTradeSide("BUY")
-                    .setPositionCode("LONG")
-                    .setHoldingTransactionId(RandomUtils.nextDouble(12, 2000))
-                    .setLastExecutionUSDPrice(RandomUtils.nextDouble(0, 2000000))
-                    .setPortfolioTreatmentCode("TEST-DATA")
-                    .setPortfolioRelationId(RandomUtils.nextDouble(12, 2000))
-                    .setEffectiveTmstmp(LocalDateTime.now().toString())
-                    .setTestType("UPDATE")
-                    .setHoldingsId(RandomUtils.nextLong(10000, 1000000))
-                    .setRequestId(UUID.randomUUID().toString())
-                    .setTradeEventCode("AMEND")
-                    .setTradePrice(RandomUtils.nextDouble(0, 2000000))
-                    .setOriginTradeId(UUID.randomUUID().toString())
-                    .setCurrencyCode("USD")
-                    .setHoldingSourceCode(RandomStringUtils.randomAlphanumeric(6))
-                    .setHoldingViewCode(RandomStringUtils.randomAlphanumeric(12))
-                    .setOriginalContinuousHoldingId(RandomUtils.nextLong(10000, 1000000))
-                    .setPortfolioFactorVersionNumber(RandomUtils.nextLong(10000, 1000000))
-                    .setPortfolioFactorMethodCode(RandomStringUtils.randomAlphanumeric(12))
-                    .setTotalAmortizedBookCostUSDAmount(RandomUtils.nextDouble(0, 2000000))
-                    .setHoldingEffectiveTmstmp(LocalDateTime.now().toString())
-                    .setLatestPrice(false);
+        DataCacheMessage dataCacheMessage2 = new DataCacheMessage();
+        dataCacheMessage2.compact = false;
+        dataCacheMessage2.schema=0;
 
 
-            // Build Message
-            TotMessage totMessage = builder.build();
 
-            // repeated field
-            builderList.addTotList(totMessage.toByteString());
-        }
-
-        TotListMessage lotListMessage = builderList.build();
-
-//        System.out.println(builderList.toString());
+        List<DataCacheMessage> src = new ArrayList<>();
+        src.add(dataCacheMessage1);
+        src.add(dataCacheMessage2);
 
 
-        // write the protocol buffers binary to a file
-        try {
-
-            byte[] compressed = Snappy.compress(lotListMessage.toByteArray());
-
-            FileUtils.writeByteArrayToFile(new File("C:\\Users\\yhu\\Documents\\TestData\\tot-msg\\lotListMessage.bin"), lotListMessage.toByteArray());
-
-            FileUtils.writeByteArrayToFile(new File("C:\\Users\\yhu\\Documents\\TestData\\tot-msg\\lotListMessage.bin.snappy"), compressed);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        long eTime = DateTime.now().getMillis();
-
-        System.out.println(">>S>>"+ sTime);
-        System.out.println(">>E>>"+ eTime);
-        System.out.println(">>DIFF >>"+ (eTime - sTime ));
-
-        // send as byte array
-//         byte[] bytes = message.toByteArray();
+        MessagePack msgpack = new MessagePack();
+// Serialize
 
         try {
-//            System.out.println("Reading from file... ");
-            FileInputStream fileInputStream = new FileInputStream("C:\\Users\\yhu\\Documents\\TestData\\tot-msg\\lotListMessage.bin");
-            TotListMessage messageFromFile = TotListMessage.parseFrom(fileInputStream);
+            byte[] raw = msgpack.write(src);
+            byte[] rawMsg = msgpack.write(dataCacheMessage1);
 
-            List<ByteString> messageList = new ArrayList<ByteString>();
-            messageList = messageFromFile.getTotListList();
+            logger.debug("{}",raw);
 
-//            System.out.println("Message Count >>" + messageList.size());
+//
 
-            for (ByteString byteString : messageList) {
-                TotMessage totMessageFromFile = TotMessage.parseFrom(byteString);
-//                System.out.println("setPortfolioId >>" + totMessageFromFile.getPortfolioId());
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            Packer packer = msgpack.createPacker(out);
+            packer.write(dataCacheMessage1);
+            packer.write(dataCacheMessage2);
+            byte[] bytes = out.toByteArray();
+
+            ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+            Unpacker unpacker = msgpack.createUnpacker(in);
+            DataCacheMessage dst1 = unpacker.read(DataCacheMessage.class);
+            DataCacheMessage dst2 = unpacker.read(DataCacheMessage.class);
+            logger.debug("{}",dst1.compact);
+            logger.debug("{}",dst2.compact);
+
+
+
+
+//            DataCacheMessage dst = msgpack.read(rawMsg, DataCacheMessage.class);
+//            logger.debug("{}",dst.compact);
+//
+//
+//            DataCacheMessage dst1 = msgpack.read(raw, DataCacheMessage.class);
+//
+//            logger.debug("{}",dst1);
+
+//            rawMsg
+
+
+//            msgpack.register(List.class, new ListTemplate(new DataCacheMessage()));
+
+            Value value = msgpack.read(raw);
+
+            if(value.isArrayValue()) {
+                DataCacheMessage[] array = msgpack.convert(value, new DataCacheMessage[1000000]);
+
+                System.out.println(array.length);
+                System.out.println(array[0].compact);
+                System.out.println(array[1].compact);
+
+
             }
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+//            if(value.isRawValue()) {
+//                System.out.println("sddddddddss");
+//            }
+
+
+//            List<byte[]> dst1 = msgpack.read(raw, new List());
+//            System.out.println(dst1.get(0).length);
+//            System.out.println(dst1.get(1).length);
+////            System.out.println(dst1.get(1));
+////            System.out.println(dst1.get(2));
+
         } catch (IOException e) {
             e.printStackTrace();
-//        }
-
         }
 
+
+
+
+
+
+//// Or, Deserialze to Value then convert type.
+//        Value dynamic = msgpack.read(raw);
+//        List<String> dst2 = new Converter(dynamic)
+//                .read(Templates.tList(Templates.TString));
+//        System.out.println(dst2.get(0));
+//        System.out.println(dst2.get(1));
+//        System.out.println(dst2.get(2));
+//
+//    }
     }
 }

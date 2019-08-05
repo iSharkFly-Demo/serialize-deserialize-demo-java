@@ -1,14 +1,16 @@
 package com.insight.demo.serialize;
 
 import com.google.protobuf.ByteString;
-import com.insight.demo.serialize.mode.Tot.TotMessage;
-import com.insight.demo.serialize.mode.TotList.TotListMessage;
+import com.insight.demo.serialize.model.Tot.TotMessage;
+import com.insight.demo.serialize.model.TotList.TotListMessage;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xerial.snappy.Snappy;
 
 import java.io.FileInputStream;
@@ -21,6 +23,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class ProtobufDataAnalysis {
+
+    final Logger logger = LoggerFactory.getLogger(ProtobufDataAnalysis.class);
+
 
     @Test
     public void testTotCache() {
