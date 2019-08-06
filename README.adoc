@@ -22,7 +22,7 @@ MessagePack 的目标尽量的简单和紧凑。官方的实现已经实现了�
 
 MessagePack 的了解就是传输的数据格式都是二进制，可以节省用户的流量。
 
-image::http://docs.ossez.com/messagepack-docs/images/messagepack-logo.png[]
+image::http://docs.ossez.com/messagepack-docs/images/messagepack-logo.jpg[]
 
 === MessagePack 相关文档和资料
  * https://www.cwiki.us/display/Serialization/MessagePack - cwiki.us 的 MessagePack WIKI
