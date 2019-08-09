@@ -1,5 +1,6 @@
 package com.insight.demo.serialize;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,11 +8,13 @@ import com.insight.demo.serialize.model.msgpack.MessageData;
 import com.insight.demo.utils.MockDataUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.msgpack.core.MessagePack;
+import org.msgpack.core.MessageUnpacker;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -139,6 +142,36 @@ public class MessagePackSerializer {
         }
 
 
+    }
+
+    /**
+     * Serialization Not Close output stream
+     */
+    @Test
+    public void testMessagePackSerializationNotCloseOutputStream() {
+        logger.debug("testMessagePackSerializationNotCloseOutputStream");
+
+        try {
+            File tempFile = File.createTempFile("messagepack-", "-cwiki.us");
+
+            OutputStream out = new FileOutputStream(tempFile);
+            ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
+            objectMapper.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+
+            objectMapper.writeValue(out, 1);
+            objectMapper.writeValue(out, "two");
+            objectMapper.writeValue(out, 3.14);
+            out.close();
+
+            MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(new FileInputStream(tempFile));
+            System.out.println(unpacker.unpackInt());      // => 1
+            System.out.println(unpacker.unpackString());   // => two
+            System.out.println(unpacker.unpackFloat());    // => 3.14
+
+            tempFile.deleteOnExit();
+        } catch (IOException ex) {
+            logger.error("Serialize Error", ex);
+        }
     }
 
     @Test
