@@ -1,6 +1,7 @@
 package com.insight.demo.serialize;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +10,7 @@ import com.insight.demo.utils.MockDataUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.msgpack.core.MessagePack;
+import org.msgpack.core.MessagePacker;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 import org.slf4j.Logger;
@@ -167,6 +169,34 @@ public class MessagePackSerializer {
             System.out.println(unpacker.unpackInt());      // => 1
             System.out.println(unpacker.unpackString());   // => two
             System.out.println(unpacker.unpackFloat());    // => 3.14
+
+            tempFile.deleteOnExit();
+        } catch (IOException ex) {
+            logger.error("Serialize Error", ex);
+        }
+    }
+
+    /**
+     * Serialization Not Close input stream
+     */
+    @Test
+    public void testMessagePackSerializationNotCloseInputStream() {
+        logger.debug("testMessagePackSerializationNotCloseInputStream");
+
+        try {
+            File tempFile = File.createTempFile("messagepack-", "-cwiki.us");
+
+            MessagePacker packer = MessagePack.newDefaultPacker(new FileOutputStream(tempFile));
+            packer.packInt(42);
+            packer.packString("Hello");
+            packer.close();
+
+            FileInputStream in = new FileInputStream(tempFile);
+            ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
+            objectMapper.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+            System.out.println(objectMapper.readValue(in, Integer.class));
+            System.out.println(objectMapper.readValue(in, String.class));
+            in.close();
 
             tempFile.deleteOnExit();
         } catch (IOException ex) {
