@@ -1,6 +1,7 @@
 package com.insight.demo.serialize;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.insight.demo.serialize.model.msgpack.MessageData;
 import com.insight.demo.utils.MockDataUtils;
@@ -49,6 +50,40 @@ public class MessagePackSerializer {
             logger.debug("Deserialized Name: [{}]", deserialized.name);
 
             assertEquals("CWIKI.US", deserialized.name);
+
+        } catch (JsonProcessingException ex) {
+            logger.error("Serialize Error", ex);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * SerializationList
+     */
+    @Test
+    public void testMessagePackSerializationList() {
+
+        byte[] bytes = new byte[0];
+        String uuid = UUID.randomUUID().toString();
+
+        // Instantiate ObjectMapper for MessagePack
+        ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
+
+        List<MessageData> objList = MockDataUtils.getMessageDataList(9);
+
+        try {
+            // Serialize a Java object to byte array
+            bytes = objectMapper.writeValueAsBytes(objList);
+            logger.debug("Length of Bytes: [{}]", bytes.length);
+
+            // Deserialize the byte array to a Java object
+            // Deserialize the byte array to a List
+            List<MessageData> deserialized = objectMapper.readValue(bytes, new TypeReference<List<MessageData>>() {
+            });
+            logger.debug("Deserialized List Count: [{}]", deserialized.size());
+            logger.debug("List index 0: [{}]", deserialized.get(0).name);
 
         } catch (JsonProcessingException ex) {
             logger.error("Serialize Error", ex);
