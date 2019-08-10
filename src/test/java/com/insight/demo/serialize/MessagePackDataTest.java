@@ -16,10 +16,18 @@ import org.xerial.snappy.Snappy;
 
 import java.util.List;
 
+/**
+ * MessagePackDataTest
+ *
+ * @author yhu
+ */
 public class MessagePackDataTest {
 
     final Logger logger = LoggerFactory.getLogger(MessagePackDataTest.class);
 
+    /**
+     * testDataSize
+     */
     @Test
     public void testDataSize() {
         logger.debug("Test Data Size");
