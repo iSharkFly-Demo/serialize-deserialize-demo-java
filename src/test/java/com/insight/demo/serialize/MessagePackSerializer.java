@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.insight.demo.serialize.model.msgpack.MessageData;
 import com.insight.demo.utils.MockDataUtils;
 import org.junit.Assert;
@@ -13,6 +14,7 @@ import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessagePacker;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
+import org.msgpack.jackson.dataformat.MessagePackKeySerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,7 +145,6 @@ public class MessagePackSerializer {
             e.printStackTrace();
         }
 
-
     }
 
     /**
@@ -203,6 +204,57 @@ public class MessagePackSerializer {
             logger.error("Serialize Error", ex);
         }
     }
+
+    /**
+     * testMessagePackSerializationMapKey
+     */
+    @Test
+    @JsonSerialize(keyUsing = MessagePackKeySerializer.class)
+    public void testMessagePackSerializationMapKey() {
+        logger.debug("testMessagePackSerializationNotCloseInputStream");
+
+        byte[] bytes = new byte[0];
+        Integer uuid_a = 101;
+        Integer uuid_b = 102;
+
+        // Instantiate ObjectMapper for MessagePack
+        ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
+
+        Map<Integer, MessageData> map = new HashMap<>();
+        MessageData messageData = new MessageData();
+
+        // Element A in MAP
+        messageData.setUuid(UUID.randomUUID().toString());
+        messageData.setName("CWIKI.US - A");
+        map.put(uuid_a, messageData);
+
+        // Element B in MAP
+        messageData = new MessageData();
+        messageData.setUuid(UUID.randomUUID().toString());
+        messageData.setName("CWIKI.US - B");
+        map.put(uuid_b, messageData);
+
+
+        try {
+            // Serialize a Java object to byte array
+            bytes = objectMapper.writeValueAsBytes(map);
+            logger.debug("Length of Bytes: [{}]", bytes.length);
+
+            // Deserialize the byte array to a MAP
+            Map<String, MessageData> deserialized = objectMapper.readValue(bytes, new TypeReference<Map<Integer, MessageData>>() {
+            });
+            logger.debug("Deserialized MAP Count: [{}]", deserialized.size());
+            logger.debug("MAP index 0: [{}]", deserialized.get(uuid_a).getName());
+
+            assertEquals("CWIKI.US - A", deserialized.get(uuid_a).getName());
+
+        } catch (JsonProcessingException ex) {
+            logger.error("Serialize Error", ex);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Test
     public void testMessagePackSerialization() {
